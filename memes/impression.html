@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script><!-- good but not perfect -->
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script><!-- perfect -->
     <title>印象</title>
   </head>
 
@@ -28,6 +29,13 @@
       <button>
         点击图像格子粘贴图片，双击本地选择图片，所有的字点击都可以更改
       </button>
+      <button>
+        <a
+          class="text-cyan-400 underline"
+          href="https://github.com/RikaCelery/test/issues/new"
+          >反馈问题，或提出建议</a
+        >
+      </button>
       <div
         class="rows w-full items flex flex-col gap-4 justify-center items-center"
       >
@@ -45,38 +53,68 @@
           />
         </div>
       </div>
+      <button class="w-16 h-10 rounded-md bg-white text-black" onclick="add()">
+        ADD
+      </button>
+      <button
+        class="w-16 h-16 rounded-md bg-cyan-300 text-black"
+        onclick="sc()"
+      >
+        📷
+      </button>
     </div>
-    <button class="w-16 h-10 rounded-md bg-white text-black" onclick="add()">
-      ADD
-    </button>
-    <button class="w-16 h-16 rounded-md bg-cyan-300 text-black" onclick="sc()">
-      📷
-    </button>
-    <div class="sc pt-3 flex justify-center items-center"></div>
+    <div class="sc pt-3 flex justify-center items-center"><img id="sc" /></div>
+
+    <!-- 隐藏的文件输入元素 -->
+    <input type="file" id="fileInput" style="display: none" accept="image/*" />
   </body>
   <script>
+    const fileInput = document.getElementById("fileInput");
+    var imageEl;
+    // 监听文件选择变化
+    fileInput.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          try {
+            // 使用 FileReader API 将文件转换为 data URL
+            const reader = new FileReader();
+            reader.onloadend = function (fr,ev) {
+              console.log(imageEl,reader.result);
+              imageEl.style.backgroundImage = `url(${reader.result})`
+            };
+            reader.readAsDataURL(file);
+            // 清除 input value 以便可以选择相同的文件再次上传
+            fileInput.value = "";
+          } catch (err) {
+            console.error("Failed to read the uploaded image: ", err);
+          }
+        }
+    });
     function sc() {
       document.querySelectorAll("button").forEach((b) => {
+        if (b.classList.contains("no-hide")) return;
         b.style.display = "none";
       });
-      html2canvas(document.querySelector(".wrapper"), {
-        // foreignObjectRendering:true
-      }).then(function (canvas) {
-        document.querySelector(".sc").innerHTML = "";
-        canvas.style.width = "100%";
-        canvas.style.height = "auto";
-        document.querySelector(".sc").appendChild(canvas);
-        // document.body.appendChild(canvas);
-        document.querySelectorAll("button").forEach((b) => {
-          b.style.display = "";
+      htmlToImage
+        .toPng(document.querySelector(".wrapper"))
+        .then(function (dataUrl) {
+          document.getElementById("sc").src = dataUrl;
+        })
+        .catch(function (error) {
+          console.error("oops, something went wrong!", error);
+        })
+        .finally(() => {
+          document.querySelectorAll("button").forEach((b) => {
+            b.style.display = "";
+          });
         });
-      });
     }
     function add() {
       $(".items").append(`
       <div class="w-full text-black item grid max-w-xl gap-y-5 px-10 mx-auto">
         <div
           tabindex="0"
+          ondblclick="imageEl=this;fileInput.click()"
           onpaste="handlePaste(event)"
           class="cover bg-cover bg-no-repeat fle x-1 h-full aspect-square p-3 shadow-2xl bg-gray-300 focus:shadow-amber-500 hover:cursor-pointer"
         ></div>
