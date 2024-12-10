@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <title>印象</title>
+  </head>
+
+  <body class="p-3 text-white">
+    <div
+      class="wrapper pb-4 bg-black size-full flex flex-col gap-4 justify-center items-center"
+    >
+      <div
+        class="text-white relative leading-loose flex justify-center items-center text-4xl bg-transparent text-center"
+        value="印象"
+      >
+        <span>印象</span
+        ><input
+          type="text"
+          class="absolute w-screen top-0 h-full opacity-0 bg-black focus:opacity-100 size-full"
+          value="印象"
+          onchange="this.parentElement.querySelector('span').textContent = this.value"
+        />
+      </div>
+      <button>
+        点击图像格子粘贴图片，双击本地选择图片，所有的字点击都可以更改
+      </button>
+      <div
+        class="rows w-full items flex flex-col gap-4 justify-center items-center"
+      >
+        <div class="w-full text-white item grid max-w-xl gap-5 px-10 mx-auto">
+          <div></div>
+          <div class=""></div>
+          <input
+            class="text-center w-full bg-transparent leading-loose"
+            value="初印象"
+          />
+          <div></div>
+          <input
+            class="text-center w-full bg-transparent leading-loose"
+            value="现印象"
+          />
+        </div>
+      </div>
+    </div>
+    <button class="w-16 h-10 rounded-md bg-white text-black" onclick="add()">
+      ADD
+    </button>
+    <button class="w-16 h-16 rounded-md bg-cyan-300 text-black" onclick="sc()">
+      📷
+    </button>
+    <div class="sc pt-3 flex justify-center items-center"></div>
+  </body>
+  <script>
+    function sc() {
+      document.querySelectorAll("button").forEach((b) => {
+        b.style.display = "none";
+      });
+      html2canvas(document.querySelector(".wrapper"), {
+        // foreignObjectRendering:true
+      }).then(function (canvas) {
+        document.querySelector(".sc").innerHTML = "";
+        canvas.style.width = "100%";
+        canvas.style.height = "auto";
+        document.querySelector(".sc").appendChild(canvas);
+        // document.body.appendChild(canvas);
+        document.querySelectorAll("button").forEach((b) => {
+          b.style.display = "";
+        });
+      });
+    }
+    function add() {
+      $(".items").append(`
+      <div class="w-full text-black item grid max-w-xl gap-y-5 px-10 mx-auto">
+        <div
+          tabindex="0"
+          onpaste="handlePaste(event)"
+          class="cover bg-cover bg-no-repeat fle x-1 h-full aspect-square p-3 shadow-2xl bg-gray-300 focus:shadow-amber-500 hover:cursor-pointer"
+        ></div>
+        <div></div>
+        <div class="feeling relative aspect-square">
+          <div
+            class="content whitespace-pre-wrap size-full bg-white text-wrap break-all flex justify-center items-center"
+          ></div>
+          <textarea
+            class="size-full shadow-amber-500 shadow-lg absolute top-0 left-0 opacity-0 focus:opacity-100"
+            type="text"
+            onblur="console.log(this.parentElement.querySelector('div').textContent = this.value);"
+          ></textarea>
+        </div>
+        <div></div>
+        <div class="feeling relative aspect-square">
+          <div
+            class="content whitespace-pre-wrap size-full bg-white text-wrap break-all flex justify-center items-center"
+          ></div>
+          <textarea
+            class="size-full shadow-amber-500 shadow-lg absolute top-0 left-0 opacity-0 focus:opacity-100"
+            type="text"
+            onblur="console.log(this.parentElement.querySelector('div').textContent = this.value);"
+          ></textarea>
+        </div>
+
+    <button class="w-10 h-10 rounded-md bg-white text-red-600" onclick="this.parentElement.remove()">
+      X
+    </button>
+      </div>`);
+    }
+    function handlePaste(e) {
+      /**
+       * @type{ClipboardEvent}
+       * */
+      let event = e;
+      var fr = new FileReader();
+      fr.onload = function () {
+        var dataURL = fr.result;
+        // console.log(dataURL);
+        event.target.style.backgroundImage = `url(${dataURL})`;
+      };
+      fr.readAsDataURL(event.clipboardData.files[0]);
+      // let d = event.clipboardData.getData("Text")
+      // console.log(event.clipboardData.files[0],event.clipboardData.getData("Text"));
+    }
+    document.querySelectorAll(".cover").forEach((img) => {
+      //   img.addEventListener("paste", );
+    });
+    async function handleClick(event) {
+      try {
+        // 尝试从剪贴板读取数据
+        const clipboardItems = await navigator.clipboard.read();
+        console.log(clipboardItems);
+        for (const clipboardItem of clipboardItems) {
+          // 检查剪贴板项是否有图像类型
+          const imageTypes = ["image/png", "image/jpeg", "image/gif"];
+          const blob = await clipboardItem.getType(
+            imageTypes.find((t) => clipboardItem.types.includes(t))
+          );
+
+          if (blob) {
+            // 创建一个 URL 对象来表示图像
+            const imageUrl = URL.createObjectURL(blob);
+
+            // 更新 img 的 src 属性
+            event.target.src = imageUrl;
+
+            // 如果只需要第一个匹配的图像，则可以在此处 break
+            break;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to read clipboard data: ", err);
+      }
+    }
+  </script>
+  <style>
+    .item {
+      grid-template-columns: 1fr 2rem 1fr 1rem 1fr 0;
+    }
+  </style>
+</html>
