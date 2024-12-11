@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+    <!-- perfect -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <title>Document</title>
+  </head>
+  <body class="">
+    <div id="app" class="p-3">
+      <div
+        class="container flex flex-col gap-px p-px bg-black wrapper justify-self-center bingo-container"
+      >
+        <div class="flex flex-col items-center w-full bg-white">
+          <input
+            class="w-full text-4xl font-bold text-center name"
+            placeholder="XXXX BINGO！"
+            v-model="data['title']"
+          />
+          <textarea
+            v-model="data['desc']"
+            placeholder="五个连成一线，说明你XXXXXXXXXX，XXXXXX真是辛苦了！"
+            rows="1"
+            class="w-full text-xl font-semibold leading-loose text-center desc"
+          ></textarea>
+          <button>
+            上面的可以按右下角的小三角调整高度
+          </button>
+          <button>
+            点击格子输入内容，标题和简介都可更改, 点击最下面的📷截图
+          </button>
+          <div class="flex justify-center w-full gap-2">
+            <button class="p-1 rounded-md bg-slate-200" @click="datarows++">
+              增加行 {{data.rows}}
+            </button>
+            <button class="p-1 rounded-md bg-slate-200" @click="data.rows--">
+              减少行 {{data.rows}}
+            </button>
+            <button class="p-1 rounded-md bg-slate-200" @click="data.cols++">
+              增加列 {{data.cols}}
+            </button>
+            <button class="p-1 rounded-md bg-slate-200" @click="data.cols--">
+              减少列 {{data.cols}}
+            </button>
+          </div>
+          <button>
+            <a
+              class="underline text-cyan-400"
+              href="https://github.com/RikaCelery/test/issues/new"
+              >反馈问题，或提出建议</a
+            >
+          </button>
+        </div>
+        <div class="flex gap-px" v-for="y in data.rows">
+          <textarea
+            class="w-full m-0 break-all whitespace-pre-wrap bg-white resize-none aspect-square"
+            v-for="x in data.cols"
+            v-model="data[`${x}-${y}`]"
+          ></textarea>
+        </div>
+      </div>
+      <div class="grid grid-cols-3">
+        <button
+          class="m-auto text-2xl text-black rounded-md size-16 bg-cyan-300"
+          onclick="sc()"
+        >
+          📷
+        </button>
+        <button
+          class="p-3 m-auto text-black bg-gray-300 rounded-md"
+          @click="share()"
+        >
+          分享给别人
+        </button>
+        <button
+          class="p-3 m-auto text-black bg-gray-300 rounded-md"
+          @click="loadData()"
+        >
+          从剪贴板加载
+        </button>
+        <div class="flex items-center justify-center pt-3 col-span-full sc">
+          <img id="sc" />
+        </div>
+        <code>{{data}}</code>
+      </div>
+    </div>
+  </body>
+  <script>
+    function sc() {
+      document.querySelectorAll("button").forEach((b) => {
+        if (b.classList.contains("no-hide")) return;
+        b.style.display = "none";
+      });
+
+      document.querySelectorAll("textarea").forEach((b) => {
+        b.style.resize = "none";
+      });
+      htmlToImage
+        .toPng(document.querySelector(".wrapper"))
+        .then(function (dataUrl) {
+          document.getElementById("sc").src = dataUrl;
+        })
+        .catch(function (error) {
+          console.error("oops, something went wrong!", error);
+        })
+        .finally(() => {
+          document.querySelectorAll("button").forEach((b) => {
+            b.style.display = "";
+          });
+          document.querySelectorAll("textarea").forEach((b) => {
+            b.style.resize = "";
+          });
+        });
+    }
+
+    const { createApp, ref } = Vue;
+
+    var app = createApp({
+      setup() {
+        const data = ref({rows:5,cols:5});
+        function share() {
+          navigator.clipboard.writeText(JSON.stringify(data.value));
+        }
+        async function loadData() {
+          const d = await navigator.clipboard.readText();
+          data.value = d
+        }
+        return {
+          data,
+          share,
+          loadData
+        };
+      },
+    });
+    app.mount("#app");
+  </script>
+  <style>
+    .bingo-container {
+    }
+  </style>
+</html>
