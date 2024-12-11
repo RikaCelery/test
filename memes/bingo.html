@@ -125,8 +125,8 @@
           navigator.clipboard.writeText(JSON.stringify(data.value));
         }
         async function loadData() {
-          const d = await navigator.clipboard.readText();
-          data.value = d
+          const d = await navigator.clipboard.read();
+          data.value = JSON.parse(d)
         }
         return {
           data,
